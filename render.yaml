@@ -1,0 +1,40 @@
+services:
+  # Web API Service
+  - type: web
+    name: wallet-watcher-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn api.app:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wallet-watcher-db
+          property: connectionString
+      - key: WEB3_PROVIDER_URI
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+    
+  # Background Worker Service
+  - type: worker
+    name: wallet-monitor-worker
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m api.workers.scheduler
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: wallet-watcher-db
+          property: connectionString
+      - key: WEB3_PROVIDER_URI
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+
+# Database
+databases:
+  - name: wallet-watcher-db
+    databaseName: wallet_watcher
+    user: wallet_watcher_user
