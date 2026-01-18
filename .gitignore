@@ -1,3 +1,8 @@
+cat .gitignore
+```
+
+It should contain at least:
+```
 # Python
 __pycache__/
 *.py[cod]
@@ -6,10 +11,12 @@ __pycache__/
 .Python
 venv/
 env/
+ENV/
 
 # Database
 *.db
 *.sqlite3
+instance/
 
 # Environment variables
 .env
@@ -17,6 +24,10 @@ env/
 # Logs
 logs/
 *.log
+
+# Coverage
+.coverage
+htmlcov/
 
 # IDE
 .vscode/
@@ -27,4 +38,3 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
-EOF
