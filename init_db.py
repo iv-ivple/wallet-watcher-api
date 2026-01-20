@@ -1,3 +1,4 @@
+import os
 from api.app import create_app
 from api.models import db
 
@@ -7,8 +8,9 @@ from api.models.transaction import Transaction
 from api.models.alert import Alert
 from api.models.api_key import ApiKey
 
-# Create the Flask app
-app = create_app('development')
+# Use production config on Render, development locally
+config_name = 'production' if os.environ.get('RENDER') else 'development'
+app = create_app(config_name)
 
 # Use the app context
 with app.app_context():

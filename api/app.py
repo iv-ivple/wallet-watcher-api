@@ -37,6 +37,10 @@ def create_app(config_name='default'):
     # Register error handlers
     register_error_handlers(app)
     
+    # Create database tables if they don't exist
+    with app.app_context():
+        db.create_all()
+    
     # Start background scheduler
     if not app.config.get('TESTING', False):
         scheduler = start_scheduler(app)

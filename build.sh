@@ -5,5 +5,4 @@ set -o errexit
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Run database migrations
-python init_db.py
+echo "Build complete! Database tables will be created on first run."
