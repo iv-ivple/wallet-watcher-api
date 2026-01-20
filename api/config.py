@@ -25,7 +25,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')  # Must be set in production
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', '').replace('postgresql://', 'postgresql+psycopg://')  # Must be set in production
 
 class TestingConfig(Config):
     TESTING = True
