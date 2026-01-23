@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Watcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="landing-container">
+        <div class="landing-content">
+            <div class="logo">
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="15" width="40" height="30" rx="4" stroke="#F4C542" stroke-width="3" fill="none"/>
+                    <circle cx="30" cy="30" r="5" fill="#F4C542"/>
+                    <path d="M20 15 L20 12 C20 10 21 9 23 9 L37 9 C39 9 40 10 40 12 L40 15" stroke="#F4C542" stroke-width="3" fill="none"/>
+                </svg>
+            </div>
+            
+            <h1>Wallet Watcher</h1>
+            <p class="subtitle">Monitor your Ethereum wallets with ease</p>
+            
+            <div class="auth-container">
+                <form id="loginForm">
+                    <input 
+                        type="password" 
+                        id="apiKey" 
+                        placeholder="Enter your API key"
+                        required
+                    >
+                    <button type="submit" class="btn-primary">Access Dashboard</button>
+                </form>
+                
+                <p class="help-text">
+                    Don't have an API key? Generate one using the Render Shell.
+                </p>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Real-time Monitoring</h3>
+                    <p>Track wallet balances and transactions in real-time</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Smart Alerts</h3>
+                    <p>Get notified when important events occur</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📈</div>
+                    <h3>Transaction History</h3>
+                    <p>View complete transaction history for all wallets</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (apiKey) {
+                localStorage.setItem('wallet_watcher_api_key', apiKey);
+                window.location.href = '/dashboard';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -12,7 +12,9 @@ from api.utils.errors import register_error_handlers
 from api.utils.logging_config import setup_logging
 
 def create_app(config_name='default'):
-    app = Flask(__name__)
+    app = Flask(__name__,
+                template_folder='../templates',
+                static_folder='../static')
     app.config.from_object(config[config_name])
     
     # Setup logging (do this early)
@@ -33,6 +35,15 @@ def create_app(config_name='default'):
     # Register blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(wallets_bp, url_prefix='/api/v1')
+    
+    # Frontend routes
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+    
+    @app.route('/dashboard')
+    def dashboard():
+        return render_template('dashboard.html')
     
     # Register error handlers
     register_error_handlers(app)
