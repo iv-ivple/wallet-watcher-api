@@ -6,12 +6,12 @@
 
 :root {
     --dove-grey: #6B6B6B;
-    --light-grey: #F5F5F5;
+    --light-grey: #C9C5BA;
     --dark-grey: #3A3A3A;
-    --yellow: #F4C542;
-    --yellow-hover: #E5B739;
+    --yellow: #F7CA18;
+    --yellow-hover: #E5B616;
     --white: #FFFFFF;
-    --border: #E0E0E0;
+    --border: #D4D0C5;
     --shadow: rgba(0, 0, 0, 0.1);
 }
 
