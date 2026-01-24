@@ -103,16 +103,22 @@ class Web3Service:
             # Process incoming transactions
             if incoming_response.status_code == 200:
                 incoming_data = incoming_response.json()
-                if 'result' in incoming_data and 'transfers' in incoming_data['result']:
-                    for transfer in incoming_data['result']['transfers']:
-                        transactions.append(self._format_alchemy_transfer(transfer))
+                print(f"Incoming response: {incoming_data}")  # Debug
+                if 'result' in incoming_data:
+                    result = incoming_data['result']
+                    if result and 'transfers' in result and result['transfers']:
+                        for transfer in result['transfers']:
+                            transactions.append(self._format_alchemy_transfer(transfer))
             
             # Process outgoing transactions
             if outgoing_response.status_code == 200:
                 outgoing_data = outgoing_response.json()
-                if 'result' in outgoing_data and 'transfers' in outgoing_data['result']:
-                    for transfer in outgoing_data['result']['transfers']:
-                        transactions.append(self._format_alchemy_transfer(transfer))
+                print(f"Outgoing response: {outgoing_data}")  # Debug
+                if 'result' in outgoing_data:
+                    result = outgoing_data['result']
+                    if result and 'transfers' in result and result['transfers']:
+                        for transfer in result['transfers']:
+                            transactions.append(self._format_alchemy_transfer(transfer))
             
             # Remove duplicates and sort by block number (descending)
             seen_hashes = set()

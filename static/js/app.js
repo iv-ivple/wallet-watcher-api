@@ -256,7 +256,7 @@ async function loadTransactions(address) {
         
         container.innerHTML = transactions.map(tx => `
             <div class="transaction-item">
-                <div class="transaction-hash">Hash: ${formatAddress(tx.hash)}</div>
+                <div class="transaction-hash">Hash: ${formatAddress(tx.tx_hash)}</div>
                 <div>Amount: ${tx.value} ETH</div>
                 <div style="font-size: 0.85em; color: var(--dove-grey);">${formatDate(tx.timestamp)}</div>
             </div>
