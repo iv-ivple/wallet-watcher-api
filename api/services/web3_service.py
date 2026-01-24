@@ -103,7 +103,6 @@ class Web3Service:
             # Process incoming transactions
             if incoming_response.status_code == 200:
                 incoming_data = incoming_response.json()
-                print(f"Incoming response: {incoming_data}")  # Debug
                 if 'result' in incoming_data:
                     result = incoming_data['result']
                     if result and 'transfers' in result and result['transfers']:
@@ -113,7 +112,6 @@ class Web3Service:
             # Process outgoing transactions
             if outgoing_response.status_code == 200:
                 outgoing_data = outgoing_response.json()
-                print(f"Outgoing response: {outgoing_data}")  # Debug
                 if 'result' in outgoing_data:
                     result = outgoing_data['result']
                     if result and 'transfers' in result and result['transfers']:
@@ -143,13 +141,14 @@ class Web3Service:
         
         # Parse timestamp from metadata if available
         timestamp = datetime.now()  # Default to now
-        if 'metadata' in transfer and 'blockTimestamp' in transfer['metadata']:
-            try:
-                timestamp = datetime.fromisoformat(
-                    transfer['metadata']['blockTimestamp'].replace('Z', '+00:00')
-                )
-            except:
-                pass
+        if transfer.get('metadata') and isinstance(transfer['metadata'], dict):
+            if 'blockTimestamp' in transfer['metadata']:
+                try:
+                    timestamp = datetime.fromisoformat(
+                        transfer['metadata']['blockTimestamp'].replace('Z', '+00:00')
+                    )
+                except:
+                    pass
         
         # Get value (default to 0 if not present)
         value = transfer.get('value', 0)
