@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: wallet-watcher-db
+    environment:
+      POSTGRES_USER: walletuser
+      POSTGRES_PASSWORD: walletpass
+      POSTGRES_DB: walletwatcher
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U walletuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask API
+  api:
+    build: .
+    container_name: wallet-watcher-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://walletuser:walletpass@db:5432/walletwatcher
+      - RPC_URL=${RPC_URL}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 api.app:app
+
+volumes:
+  postgres_data:
+db:
+    # ... existing config ...
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql

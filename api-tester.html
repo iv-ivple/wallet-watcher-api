@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Watcher API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .config {
+            padding: 20px;
+            background: #f7f7f7;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .config input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .endpoints {
+            padding: 20px;
+        }
+        
+        .endpoint {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .endpoint:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .endpoint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .method {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .method.get {
+            background: #61affe;
+            color: white;
+        }
+        
+        .method.post {
+            background: #49cc90;
+            color: white;
+        }
+        
+        .method.delete {
+            background: #f93e3e;
+            color: white;
+        }
+        
+        .endpoint-path {
+            flex-grow: 1;
+            font-family: monospace;
+            color: #333;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .response.show {
+            display: block;
+        }
+        
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status.success {
+            background: #49cc90;
+            color: white;
+        }
+        
+        .status.error {
+            background: #f93e3e;
+            color: white;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Wallet Watcher API Tester</h1>
+            <p>Test your API endpoints directly from your browser</p>
+        </div>
+        
+        <div class="config">
+            <h3>Configuration</h3>
+            <input type="text" id="baseUrl" placeholder="Base URL (e.g., https://wallet-watcher-api.onrender.com)" value="https://wallet-watcher-api.onrender.com">
+            <input type="text" id="apiKey" placeholder="API Key">
+            <input type="text" id="testWallet" placeholder="Test Wallet Address (e.g., 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045)" value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045">
+        </div>
+        
+        <div class="endpoints">
+            <!-- Health Check -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/health</span>
+                    </div>
+                    <button onclick="testEndpoint('health')">Test</button>
+                </div>
+                <div class="response" id="response-health"></div>
+            </div>
+            
+            <!-- Register Wallet -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/v1/wallets</span>
+                    </div>
+                    <button onclick="testEndpoint('register')">Test</button>
+                </div>
+                <textarea id="register-body" rows="3">{"address":"0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045","label":"Test Wallet"}</textarea>
+                <div class="response" id="response-register"></div>
+            </div>
+            
+            <!-- List Wallets -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/v1/wallets</span>
+                    </div>
+                    <button onclick="testEndpoint('list')">Test</button>
+                </div>
+                <div class="response" id="response-list"></div>
+            </div>
+            
+            <!-- Get Wallet Details -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/v1/wallets/{address}</span>
+                    </div>
+                    <button onclick="testEndpoint('details')">Test</button>
+                </div>
+                <div class="response" id="response-details"></div>
+            </div>
+            
+            <!-- Get Transactions -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/v1/wallets/{address}/transactions</span>
+                    </div>
+                    <button onclick="testEndpoint('transactions')">Test</button>
+                </div>
+                <div class="response" id="response-transactions"></div>
+            </div>
+            
+            <!-- Create Alert -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/api/v1/wallets/{address}/alerts</span>
+                    </div>
+                    <button onclick="testEndpoint('createAlert')">Test</button>
+                </div>
+                <textarea id="createAlert-body" rows="3">{"alert_type":"balance_change","threshold":"0.1","notification_method":"email"}</textarea>
+                <div class="response" id="response-createAlert"></div>
+            </div>
+            
+            <!-- List Alerts -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/api/v1/wallets/{address}/alerts</span>
+                    </div>
+                    <button onclick="testEndpoint('listAlerts')">Test</button>
+                </div>
+                <div class="response" id="response-listAlerts"></div>
+            </div>
+            
+            <!-- Delete Alert -->
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div>
+                        <span class="method delete">DELETE</span>
+                        <span class="endpoint-path">/api/v1/alerts/{alert_id}</span>
+                    </div>
+                    <button onclick="testEndpoint('deleteAlert')">Test</button>
+                </div>
+                <input type="text" id="alertId" placeholder="Alert ID (get from List Alerts response)">
+                <div class="response" id="response-deleteAlert"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testEndpoint(type) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const wallet = document.getElementById('testWallet').value;
+            const responseDiv = document.getElementById(`response-${type}`);
+            
+            if (!baseUrl) {
+                alert('Please enter Base URL');
+                return;
+            }
+            
+            if (type !== 'health' && !apiKey) {
+                alert('Please enter API Key');
+                return;
+            }
+            
+            responseDiv.innerHTML = '<span class="loading"></span> Loading...';
+            responseDiv.classList.add('show');
+            
+            let url, method, body, headers = {};
+            
+            if (type !== 'health') {
+                headers['X-API-Key'] = apiKey;
+            }
+            
+            switch(type) {
+                case 'health':
+                    url = `${baseUrl}/health`;
+                    method = 'GET';
+                    break;
+                    
+                case 'register':
+                    url = `${baseUrl}/api/v1/wallets`;
+                    method = 'POST';
+                    headers['Content-Type'] = 'application/json';
+                    body = document.getElementById('register-body').value;
+                    break;
+                    
+                case 'list':
+                    url = `${baseUrl}/api/v1/wallets`;
+                    method = 'GET';
+                    break;
+                    
+                case 'details':
+                    url = `${baseUrl}/api/v1/wallets/${wallet}`;
+                    method = 'GET';
+                    break;
+                    
+                case 'transactions':
+                    url = `${baseUrl}/api/v1/wallets/${wallet}/transactions`;
+                    method = 'GET';
+                    break;
+                    
+                case 'createAlert':
+                    url = `${baseUrl}/api/v1/wallets/${wallet}/alerts`;
+                    method = 'POST';
+                    headers['Content-Type'] = 'application/json';
+                    body = document.getElementById('createAlert-body').value;
+                    break;
+                    
+                case 'listAlerts':
+                    url = `${baseUrl}/api/v1/wallets/${wallet}/alerts`;
+                    method = 'GET';
+                    break;
+                    
+                case 'deleteAlert':
+                    const alertId = document.getElementById('alertId').value;
+                    if (!alertId) {
+                        responseDiv.innerHTML = '<span class="status error">ERROR</span><pre>Please enter Alert ID</pre>';
+                        return;
+                    }
+                    url = `${baseUrl}/api/v1/alerts/${alertId}`;
+                    method = 'DELETE';
+                    break;
+            }
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: headers
+                };
+                
+                if (body) {
+                    options.body = body;
+                }
+                
+                const response = await fetch(url, options);
+                const data = await response.json();
+                
+                const statusClass = response.ok ? 'success' : 'error';
+                const statusText = `${response.status} ${response.statusText}`;
+                
+                responseDiv.innerHTML = `
+                    <span class="status ${statusClass}">${statusText}</span>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <span class="status error">ERROR</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
