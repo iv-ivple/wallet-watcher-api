@@ -11,6 +11,14 @@ from api.workers.scheduler import start_scheduler
 from api.utils.errors import register_error_handlers
 from api.utils.logging_config import setup_logging
 
+from api.analytics.portfolio import portfolio_bp
+from api.analytics.gas import gas_bp
+from api.analytics.token_flows import flows_bp
+
+app.register_blueprint(portfolio_bp)
+app.register_blueprint(gas_bp)
+app.register_blueprint(flows_bp)
+
 def create_app(config_name='default'):
     app = Flask(__name__,
                 template_folder='../templates',
