@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      target: builder  # Use builder stage for dev
+    volumes:
+      - .:/app  # Live code reloading
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    command: flask run --host=0.0.0.0 --reload
