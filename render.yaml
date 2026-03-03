@@ -16,7 +16,12 @@ services:
         generateValue: true
       - key: FLASK_ENV
         value: production
-    
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: wallet-watcher-redis
+          property: connectionString
+
   # Background Worker Service
   - type: worker
     name: wallet-monitor-worker
@@ -33,26 +38,14 @@ services:
       - key: SECRET_KEY
         generateValue: true
 
+  # Redis
+  - type: redis
+    name: wallet-watcher-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
 # Database
 databases:
   - name: wallet-watcher-db
     databaseName: wallet_watcher
     user: wallet_watcher_user
-
-# Redis
-  - type: web
-    name: wallet-watcher-api
-    env: python
-    buildCommand: ./build.sh
-    startCommand: gunicorn api.app:app   # adjust to match your actual start command
-    envVars:
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: wallet-watcher-redis
-          property: connectionString
-
-  - type: redis
-    name: wallet-watcher-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru   # evict least recently used keys when memory is full
