@@ -15,9 +15,6 @@ from api.analytics.portfolio import portfolio_bp
 from api.analytics.gas import gas_bp
 from api.analytics.token_flows import flows_bp
 
-app.register_blueprint(portfolio_bp)
-app.register_blueprint(gas_bp)
-app.register_blueprint(flows_bp)
 
 def create_app(config_name='default'):
     app = Flask(__name__,
@@ -43,6 +40,9 @@ def create_app(config_name='default'):
     # Register blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(wallets_bp, url_prefix='/api/v1')
+    app.register_blueprint(portfolio_bp)
+    app.register_blueprint(gas_bp)
+    app.register_blueprint(flows_bp)
     
     # Frontend routes
     @app.route('/')
