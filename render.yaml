@@ -4,7 +4,7 @@ services:
     name: wallet-watcher-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn api.app:app
+    startCommand: gunicorn api.app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
