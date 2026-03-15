@@ -3,54 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Wallet Watcher</title>
+    <title>Dashboard — Wallet Watcher</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="10" y="15" width="40" height="30" rx="4" stroke="#F4C542" stroke-width="3" fill="none"/>
-                    <circle cx="30" cy="30" r="5" fill="#F4C542"/>
+                <svg width="22" height="22" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="15" width="40" height="30" rx="4" stroke="#58a6ff" stroke-width="2.5" fill="none"/>
+                    <circle cx="30" cy="30" r="5" fill="#58a6ff"/>
                 </svg>
-                <span>Wallet Watcher</span>
+                👛 Wallet Watcher
             </div>
             <button id="logoutBtn" class="btn-outline">Logout</button>
         </div>
     </nav>
 
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Your Wallets</h1>
-            <button id="addWalletBtn" class="btn-primary">+ Add Wallet</button>
-        </div>
+    <div class="dashboard-header">
+        <h1>⚡ Your Wallets</h1>
+        <button id="addWalletBtn" class="btn-primary">+ Add Wallet</button>
+    </div>
 
-        <div id="statsCards" class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Wallets</div>
-                <div class="stat-value" id="totalWallets">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Active Alerts</div>
-                <div class="stat-value" id="totalAlerts">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Total Transactions</div>
-                <div class="stat-value" id="totalTransactions">0</div>
-            </div>
-        </div>
+    <div class="status-bar">
+        <span>Wallets: <span id="totalWallets">0</span></span>
+        <span>Alerts: <span id="totalAlerts">0</span></span>
+        <span>Transactions: <span id="totalTransactions">0</span></span>
+    </div>
 
-        <div id="walletsContainer" class="wallets-grid">
-            <!-- Wallets will be loaded here -->
-        </div>
+    <div id="walletsContainer" class="wallets-grid">
+        <!-- Wallets will be loaded here -->
+    </div>
 
-        <div id="noWallets" class="empty-state" style="display: none;">
-            <div class="empty-icon">👛</div>
-            <h3>No wallets yet</h3>
-            <p>Add your first Ethereum wallet to start monitoring</p>
-            <button class="btn-primary" onclick="showAddWalletModal()">Add Wallet</button>
-        </div>
+    <div id="noWallets" class="empty-state" style="display: none;">
+        <span class="empty-icon">👛</span>
+        <h3>No wallets yet</h3>
+        <p>Add your first Ethereum wallet to start monitoring</p>
+        <button class="btn-primary" onclick="showAddWalletModal()">Add Wallet</button>
     </div>
 
     <!-- Add Wallet Modal -->
@@ -63,18 +52,19 @@
             <form id="addWalletForm">
                 <div class="form-group">
                     <label>Wallet Address</label>
-                    <input 
-                        type="text" 
-                        id="walletAddress" 
-                        placeholder="0x..." 
+                    <input
+                        type="text"
+                        id="walletAddress"
+                        placeholder="0x..."
                         required
+                        autocomplete="off"
                     >
                 </div>
                 <div class="form-group">
                     <label>Label (Optional)</label>
-                    <input 
-                        type="text" 
-                        id="walletLabel" 
+                    <input
+                        type="text"
+                        id="walletLabel"
                         placeholder="My Main Wallet"
                     >
                 </div>
@@ -93,7 +83,7 @@
                 <h2 id="detailWalletAddress"></h2>
                 <button class="modal-close" onclick="closeModal('walletDetailModal')">&times;</button>
             </div>
-            
+
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('transactions')">Transactions</button>
                 <button class="tab-btn" onclick="switchTab('alerts')">Alerts</button>
@@ -105,7 +95,7 @@
 
             <div id="alertsTab" class="tab-content">
                 <button class="btn-primary" onclick="showAddAlertForm()">+ Add Alert</button>
-                
+
                 <div id="addAlertForm" style="display: none; margin-top: 20px;">
                     <form id="createAlertForm">
                         <div class="form-group">
