@@ -68,6 +68,11 @@ def create_app(config_name='default'):
                     scheduler.shutdown(wait=False)
                 except RuntimeError:
                     pass  # Ignore if we're in a job thread
+
+    @app.route('/health')
+    def health():
+        return 'OK', 200
+
     
     return app
 
