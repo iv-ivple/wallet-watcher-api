@@ -1,9 +1,16 @@
 # Wallet Watcher API Documentation
 
 ## Overview
-This API monitors Ethereum wallets, tracks transactions, sends alerts).
+This API monitors Ethereum wallets, tracks transactions, sends alerts, and provides enhanced analytics with Redis caching.
 
 ## Base URL
+
+**Live (Render):**
+```
+https://wallet-watcher-api-1.onrender.com/api/v1
+```
+
+**Local development:**
 ```
 http://localhost:5000/api/v1
 ```
@@ -15,6 +22,8 @@ All endpoints need an API key in the header.
 ```bash
 curl -H "X-API-Key: your_api_key_here" http://localhost:5000/api/v1/wallets
 ```
+
+---
 
 ## Endpoints
 
@@ -47,12 +56,14 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:5000/api/v1/wallets
   - 409: Wallet already registered
   - 500: Server error
 
+---
+
 ### 2. Get Wallet Info
 - **Method:** GET
 - **URL:** `/wallets/{address}`
 - **Description:** Get detailed information about a registered wallet.
 - **Headers Required:** X-API-Key
-- **Success Response (201):**
+- **Success Response (200):**
 ```json
 {
   "wallet": {
@@ -68,6 +79,7 @@ curl -H "X-API-Key: your_api_key_here" http://localhost:5000/api/v1/wallets
 }
 ```
 
+---
 
 ### 3. List All Wallets
 **GET** `/wallets`
@@ -101,6 +113,8 @@ curl -H "X-API-Key: your_key" \
   "http://localhost:5000/api/v1/wallets?page=1&per_page=20"
 ```
 
+---
+
 ### 4. Get Wallet Transactions
 **GET** `/wallets/{address}/transactions`
 
@@ -112,7 +126,7 @@ Get transaction history for a wallet.
 **Query Parameters:**
 - `page` (optional, default: 1)
 - `per_page` (optional, default: 20, max: 100)
-- `type` (optional) - Filter by 'incoming', 'outgoing', or 'all'
+- `type` (optional) - Filter by `incoming`, `outgoing`, or `all`
 
 **Response (200):**
 ```json
@@ -145,6 +159,7 @@ curl -H "X-API-Key: your_key" \
 - 400: Invalid address
 - 404: Wallet not found
 
+---
 
 ### 5. Create Balance Alert
 **POST** `/wallets/{address}/alerts`
@@ -196,6 +211,8 @@ curl -H "X-API-Key: your_key" \
 - 400: Invalid alert_type or threshold
 - 404: Wallet not found
 
+---
+
 ### 6. Get Wallet Alerts
 **GET** `/wallets/{address}/alerts`
 
@@ -226,6 +243,8 @@ curl -H "X-API-Key: your_key" \
   http://localhost:5000/api/v1/wallets/0x742d35Cc.../alerts
 ```
 
+---
+
 ### 7. Delete Alert
 **DELETE** `/alerts/{alert_id}`
 
@@ -250,6 +269,8 @@ curl -H "X-API-Key: your_key" \
 
 **Error Responses:**
 - 404: Alert not found
+
+---
 
 ### 8. Create API Key
 **POST** `/api-keys`
@@ -284,6 +305,8 @@ curl -X POST \
 
 **Note:** In production, you'd want to protect this endpoint with a master password or admin authentication.
 
+---
+
 ### 9. Health Check
 **GET** `/health`
 
@@ -304,10 +327,167 @@ curl http://localhost:5000/health
 ```
 
 **Note:** This endpoint does NOT require authentication.
+
+---
+
+## Analytics Endpoints
+
+Analytics endpoints provide enriched portfolio, gas, and token flow data. Responses are served from a Redis cache where possible to minimise RPC and external API calls. All endpoints require `X-API-Key`.
+
+### 10. Get Portfolio
+**GET** `/analytics/portfolio/{address}`
+
+Full portfolio breakdown for an Ethereum address, combining ETH and ERC-20 balances with a live USD price feed.
+
+**Path Parameters:**
+- `address` - Ethereum wallet address (checksum-validated)
+
+**Response (200):**
+```json
+{
+  "address": "0x742d35Cc...",
+  "eth": {
+    "balance_wei": "1000000000000000000",
+    "balance_eth": "1.0",
+    "price_usd": 3200.00,
+    "value_usd": 3200.00
+  },
+  "tokens": {
+    "USDC": { "balance": "500000000", "value_usd": 500.00 },
+    "USDT": { "balance": "0", "value_usd": 0 },
+    "DAI":  { "balance": "0", "value_usd": 0 },
+    "WETH": { "balance": "0", "value_usd": 0 }
+  },
+  "total_value_usd": 3700.00
+}
 ```
 
+**Cache TTL:** 300 seconds (5 minutes)
+
+**Example:**
+```bash
+curl -H "X-API-Key: your_key" \
+  http://localhost:5000/api/v1/analytics/portfolio/0x742d35Cc...
+```
+
+**Error Responses:**
+- 400: Invalid address
+- 404: Wallet not found
+
+---
+
+### 11. Get Gas Spent
+**GET** `/analytics/gas-spent/{address}`
+
+Historical gas usage analysis for all outbound transactions sent by the address.
+
+**Path Parameters:**
+- `address` - Ethereum wallet address
+
+**Query Parameters:**
+- `days` (optional, default: 30, range: 1–365) - Time window for analysis
+
+**Response (200):**
+```json
+{
+  "address": "0x742d35Cc...",
+  "days": 30,
+  "transaction_count": 42,
+  "total_gas_used": 882000,
+  "total_gas_eth": "0.012345"
+}
+```
+
+**Cache TTL:** 3600 seconds (1 hour) — historical data does not change.
+
+**Example:**
+```bash
+curl -H "X-API-Key: your_key" \
+  "http://localhost:5000/api/v1/analytics/gas-spent/0x742d35Cc...?days=30"
+```
+
+**Error Responses:**
+- 400: Invalid address or days parameter
+- 404: Wallet not found
+
+---
+
+### 12. Get Token Flows
+**GET** `/analytics/token-flows/{address}`
+
+Inbound and outbound ERC-20 transfer analysis, aggregated by token contract.
+
+**Path Parameters:**
+- `address` - Ethereum wallet address
+
+**Query Parameters:**
+- `days` (optional, default: 7, range: 1–365) - Time window for analysis
+
+**Response (200):**
+```json
+{
+  "address": "0x742d35Cc...",
+  "days": 7,
+  "inflows": {
+    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
+      "transfer_count": 3,
+      "volume_raw": "1500000000"
+    }
+  },
+  "outflows": {
+    "0xdAC17F958D2ee523a2206206994597C13D831ec7": {
+      "transfer_count": 1,
+      "volume_raw": "200000000"
+    }
+  }
+}
+```
+
+**Cache TTL:** 1800 seconds (30 minutes)
+
+**Example:**
+```bash
+curl -H "X-API-Key: your_key" \
+  "http://localhost:5000/api/v1/analytics/token-flows/0x742d35Cc...?days=7"
+```
+
+**Error Responses:**
+- 400: Invalid address or days parameter
+- 404: Wallet not found
+
+---
+
+## Caching
+
+Analytics responses are cached in Redis to reduce RPC and CoinGecko API calls. The cache is transparent to consumers — on a cache miss the API fetches fresh data automatically.
+
+### TTL Strategy
+
+| Data Type | TTL | Reason |
+|-----------|-----|--------|
+| ETH / token balances | 300s | Changes per block |
+| Token flows | 1800s | Semi-historical |
+| Gas history | 3600s | Historical — immutable |
+| ETH price | 60s | Volatile |
+
+### Cache Key Format
+
+Keys follow the pattern `type:address:params` (e.g. `portfolio:0xabc:eth`), enabling pattern-based invalidation. To clear all cached data for a specific address, delete `portfolio:0xabc*`.
+
+### Graceful Degradation
+
+If the Redis cache is unavailable, all endpoints fall back to live RPC / CoinGecko data and return results without error — responses will be slower but functional.
+
+### Performance
+
+| Endpoint | Without cache | With cache |
+|----------|--------------|------------|
+| `/analytics/portfolio` | ~1200ms | ~5ms |
+| `/analytics/gas-spent` | ~800ms | ~3ms |
+| `/analytics/token-flows` | ~1500ms | ~4ms |
+
+---
 
 ## Rate Limits
-Rate limiting 100 requests per hour
 
-
+100 requests per hour per API key.
