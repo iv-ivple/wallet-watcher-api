@@ -2,7 +2,7 @@
 
 # Wallet Watcher API Testing Script
 # Replace these with your actual values
-API_KEY="ITxgCHF_0OGpdFEKDkuGphTWLRLfWCtOdfaoAnDYhYytj7zee6dEHcgep6S2qzZh"
+API_KEY="${WALLET_WATCHER_API_KEY}"
 BASE_URL="https://wallet-watcher-api.onrender.com"
 
 # Test wallet address (use a real Ethereum address for testing)
