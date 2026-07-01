@@ -16,6 +16,11 @@ RUN pip install --no-cache-dir -r requirements.txt \
 # Copy application code
 COPY . .
 
+# Ensure logs/ exists in the image so it gets chowned below — it's not
+# committed to git, and Coolify's named volume mount would otherwise
+# create it as root-owned at container start
+RUN mkdir -p /app/logs
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 
