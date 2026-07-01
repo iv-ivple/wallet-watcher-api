@@ -17,6 +17,7 @@ def get_web3_service():
     return get_web3_service._instance
 
 @wallets_bp.route('/wallets', methods=['POST'])
+@require_api_key
 def register_wallet():
     """Register a new wallet for monitoring"""
     data = request.get_json()
@@ -59,6 +60,7 @@ def register_wallet():
     }), 201
 
 @wallets_bp.route('/wallets/<address>', methods=['GET'])
+@require_api_key
 def get_wallet(address):
     """Get wallet information"""
     if not Web3.is_address(address):
@@ -71,6 +73,7 @@ def get_wallet(address):
     return jsonify({'wallet': wallet.to_dict()}), 200
 
 @wallets_bp.route('/wallets', methods=['GET'])
+@require_api_key
 def list_wallets():
     """List all registered wallets"""
     wallets = Wallet.query.all()
@@ -80,6 +83,7 @@ def list_wallets():
     }), 200
 
 @wallets_bp.route('/wallets/<address>/transactions', methods=['GET'])
+@require_api_key
 def get_wallet_transactions(address):
     """Get transactions for a wallet"""
     if not Web3.is_address(address):
@@ -97,6 +101,7 @@ def get_wallet_transactions(address):
     }), 200
 
 @wallets_bp.route('/wallets/<address>/alerts', methods=['POST'])
+@require_api_key
 def create_alert(address):
     """Create a new alert for a wallet"""
     if not Web3.is_address(address):
@@ -126,6 +131,7 @@ def create_alert(address):
     }), 201
 
 @wallets_bp.route('/wallets/<address>/alerts', methods=['GET'])
+@require_api_key
 def get_alerts(address):
     """Get all alerts for a wallet"""
     if not Web3.is_address(address):
@@ -143,6 +149,7 @@ def get_alerts(address):
     }), 200
 
 @wallets_bp.route('/alerts/<int:alert_id>', methods=['DELETE'])
+@require_api_key
 def delete_alert(alert_id):
     """Delete an alert"""
     alert = Alert.query.get(alert_id)
