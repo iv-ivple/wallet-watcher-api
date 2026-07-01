@@ -303,7 +303,7 @@ curl -X POST \
   http://localhost:5000/api/v1/api-keys
 ```
 
-**Note:** In production, you'd want to protect this endpoint with a master password or admin authentication.
+**Note:** In production, I'd want to protect this endpoint with a master password or admin authentication.
 
 ---
 
