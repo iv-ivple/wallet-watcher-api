@@ -3,10 +3,11 @@ from web3 import Web3
 import requests
 import os
 from api.cache.redis_client import cache
+from api.middleware.auth import require_api_key
 
 portfolio_bp = Blueprint('portfolio', __name__)
 
-RPC_URL = os.getenv("RPC_URL")
+RPC_URL = os.getenv("WEB3_PROVIDER_URI")
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
 
 KNOWN_TOKENS = {
@@ -29,6 +30,7 @@ def validate_address(address: str) -> bool:
         return False
 
 @portfolio_bp.route('/analytics/portfolio/<address>', methods=['GET'])
+@require_api_key
 def get_portfolio(address):
     if not validate_address(address):
         return jsonify({"error": "Invalid Ethereum address"}), 400

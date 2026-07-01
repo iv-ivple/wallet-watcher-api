@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_limiter import Limiter
@@ -7,6 +8,7 @@ from flask_cors import CORS
 from api.config import config
 from api.models import db
 from api.routes import wallets_bp, health_bp
+from api.routes.auth import auth_bp
 from api.workers.scheduler import start_scheduler
 from api.utils.errors import register_error_handlers
 from api.utils.logging_config import setup_logging
@@ -40,9 +42,10 @@ def create_app(config_name='default'):
     # Register blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(wallets_bp, url_prefix='/api/v1')
-    app.register_blueprint(portfolio_bp)
-    app.register_blueprint(gas_bp)
-    app.register_blueprint(flows_bp)
+    app.register_blueprint(auth_bp, url_prefix='/api/v1')
+    app.register_blueprint(portfolio_bp, url_prefix='/api/v1')
+    app.register_blueprint(gas_bp, url_prefix='/api/v1')
+    app.register_blueprint(flows_bp, url_prefix='/api/v1')
     
     # Frontend routes
     @app.route('/')
@@ -55,7 +58,14 @@ def create_app(config_name='default'):
     
     # Register error handlers
     register_error_handlers(app)
-    
+
+    # Create tables on first request (not during import)
+    @app.before_request
+    def create_tables():
+        db.create_all()
+        # Remove this function after first call to avoid overhead
+        app.before_request_funcs[None].remove(create_tables)
+
     # Start background scheduler
     if not app.config.get('TESTING', False):
         scheduler = start_scheduler(app)
@@ -75,14 +85,6 @@ def create_app(config_name='default'):
 if __name__ == '__main__':
     app = create_app()
     app.run(host='0.0.0.0', port=5000)
-
-# For production (Gunicorn)
-import os
-app = create_app(os.environ.get('FLASK_ENV', 'development'))
-
-# Create tables on first request (not during import)
-@app.before_request
-def create_tables():
-    db.create_all()
-    # Remove this function after first call to avoid overhead
-    app.before_request_funcs[None].remove(create_tables)
+else:
+    # For production (Gunicorn) and `flask run` / imports generally
+    app = create_app(os.environ.get('FLASK_ENV', 'development'))

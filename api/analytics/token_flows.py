@@ -2,9 +2,10 @@ from flask import Blueprint, jsonify, request
 from web3 import Web3
 import os
 from api.cache.redis_client import cache
+from api.middleware.auth import require_api_key
 
 flows_bp = Blueprint('token_flows', __name__)
-RPC_URL = os.getenv("RPC_URL")
+RPC_URL = os.getenv("WEB3_PROVIDER_URI")
 w3 = Web3(Web3.HTTPProvider(RPC_URL))
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
@@ -16,6 +17,7 @@ def validate_address(address):
         return False
 
 @flows_bp.route('/analytics/token-flows/<address>', methods=['GET'])
+@require_api_key
 def get_token_flows(address):
     if not validate_address(address):
         return jsonify({"error": "Invalid Ethereum address"}), 400
