@@ -1,0 +1,49 @@
+version: '3.8'
+
+# Coolify deployment compose file for wallet-watcher-api
+# Differences from docker-compose.prod.yml:
+#   - DATABASE_URL uses postgresql+psycopg:// prefix (psycopg3 driver requirement)
+#   - WEB3_PROVIDER_URI replaces RPC_URL (matches what web3_service.py actually reads)
+#   - --workers 1 to avoid duplicate APScheduler background monitoring jobs
+#   - --keep-alive 75 to prevent cloudflared connection-reset-by-peer 502s
+#   - Named volume for logs instead of bind mount (avoids Coolify path permission issues)
+#   - Port mapping 3000:5000 matches pre-configured cloudflared tunnel entry
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - WEB3_PROVIDER_URI=${WEB3_PROVIDER_URI}
+      - SECRET_KEY=${SECRET_KEY}
+    ports:
+      - "3000:5000"
+    volumes:
+      - app_logs:/app/logs
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "--keep-alive", "75", "api.app:app"]
+
+volumes:
+  postgres_data:
+  app_logs:

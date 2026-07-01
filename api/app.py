@@ -68,11 +68,6 @@ def create_app(config_name='default'):
                     scheduler.shutdown(wait=False)
                 except RuntimeError:
                     pass  # Ignore if we're in a job thread
-
-    @app.route('/health')
-    def health():
-        return 'OK', 200
-
     
     return app
 
@@ -83,7 +78,7 @@ if __name__ == '__main__':
 
 # For production (Gunicorn)
 import os
-app = create_app('production' if os.environ.get('RENDER') else 'development')
+app = create_app(os.environ.get('FLASK_ENV', 'development'))
 
 # Create tables on first request (not during import)
 @app.before_request
