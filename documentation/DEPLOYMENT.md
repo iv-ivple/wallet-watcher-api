@@ -39,40 +39,45 @@ git push -u origin main
    - `DATABASE_URL` = (paste the database URL from step 2)
    - `WEB3_PROVIDER_URI` = your Alchemy URL
    - `SECRET_KEY` = (generate a random string)
+   - `ADMIN_SECRET` = (generate a random string — required to create API keys via `POST /api-keys`; see README_API.md)
    - `FLASK_ENV` = production
 
 5. Click "Create Web Service"
 
-## Step 4: Deploy Worker Service
+## Step 4: Background monitoring — no separate service needed
 
-1. Click "New +" → "Background Worker"
-2. Connect same repository
-3. Configure:
-   - **Name:** wallet-monitor-worker
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `python -m api.workers.scheduler`
-4. Add same environment variables as web service
-5. Click "Create"
+Earlier versions of this guide had you deploy a second Render service ("Background Worker") running `python -m api.workers.scheduler` for wallet monitoring. **Don't do this — it doesn't work and isn't needed.**
 
-## Step 5: Initialize Database
+`api/workers/scheduler.py` has no `__main__` entrypoint, so running it standalone just imports the module and exits immediately without doing anything. It would sit in a restart loop on Render, consuming a service slot for zero benefit.
 
-Once deployed, run migrations:
-```bash
-# SSH into your Render service or use Render shell
-flask db upgrade
-```
+The actual wallet-monitoring scheduler starts automatically **inside the web service itself** — `create_app()` calls `start_scheduler(app)` on startup, running an in-process APScheduler job every `MONITOR_INTERVAL_SECONDS` (default 60s). As long as the web service from Step 3 is running, monitoring is running. If you previously created a separate worker service for this, it's safe to delete it.
+
+## Step 5: Database Initialization — automatic, no action needed
+
+Tables are created automatically the first time the app starts (`db.create_all()` runs eagerly during app startup, before the scheduler or any request). There's no `migrations/` directory in this repo, so **don't run `flask db upgrade`** — there's nothing for it to apply, and it will error since no Alembic environment is set up.
 
 ## Step 6: Test Your Deployment
 ```bash
-# Test health endpoint
+# Test health endpoint (note: no /api/v1 prefix)
 curl https://your-app.onrender.com/health
 
 # Should return:
 # {"status": "healthy", "database": "connected", "version": "1.0.0"}
+
+# Create an API key (requires ADMIN_SECRET from Step 3)
+curl -X POST https://your-app.onrender.com/api/v1/api-keys \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Secret: your_admin_secret" \
+  -d '{"name": "smoke-test"}'
+
+# Confirm the wallets endpoint requires that key
+curl https://your-app.onrender.com/api/v1/wallets
+# Should return 401, not wallet data
 ```
 
 ## Troubleshooting
 
-- **Database connection errors:** Check DATABASE_URL is correct
-- **Worker not running:** Check worker logs in Render dashboard
-- **Web3 errors:** Verify WEB3_PROVIDER_URI is valid
+- **Database connection errors:** Check `DATABASE_URL` is correct
+- **`POST /api-keys` returns 401:** Check `ADMIN_SECRET` is set and you're sending it as `X-Admin-Secret`, not `X-API-Key`
+- **Wallets not being monitored:** Check the *web* service logs (not a separate worker — there isn't one) for scheduler startup messages
+- **Web3 errors:** Verify `WEB3_PROVIDER_URI` is valid — the app will fail to start entirely if it can't connect at boot, since the scheduler's `Web3Service` initializes eagerly
