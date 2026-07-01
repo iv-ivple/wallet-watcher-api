@@ -38,6 +38,7 @@ services:
       - DATABASE_URL=postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - WEB3_PROVIDER_URI=${WEB3_PROVIDER_URI}
       - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_SECRET=${ADMIN_SECRET}
     ports:
       - "3000:5000"
     volumes:

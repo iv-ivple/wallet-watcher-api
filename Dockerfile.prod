@@ -29,7 +29,9 @@ ENV PATH=/home/appuser/.local/bin:$PATH \
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/api/v1/health || exit 1
+  CMD curl -f http://localhost:5000/health || exit 1
 
-# Use fewer workers for free tier
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "api.app:app"]
+# Single worker: the app starts an in-process APScheduler background job at boot
+# (wallet monitoring). Multiple workers would each start their own scheduler,
+# monitoring every wallet multiple times per cycle.
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--timeout", "120", "api.app:app"]

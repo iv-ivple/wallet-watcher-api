@@ -25,13 +25,20 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      - RPC_URL=${RPC_URL}
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - WEB3_PROVIDER_URI=${WEB3_PROVIDER_URI}
       - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_SECRET=${ADMIN_SECRET}
     ports:
       - "5000:5000"
     volumes:
-      - ./logs:/app/logs
+      - app_logs:/app/logs
+    # Dockerfile.prod's default CMD already runs a single gunicorn worker —
+    # deliberately not overridden here. The app starts an in-process
+    # APScheduler background job at boot (wallet monitoring); multiple
+    # workers would each start their own scheduler and double-monitor.
 
 volumes:
   postgres_data:
+  app_logs:

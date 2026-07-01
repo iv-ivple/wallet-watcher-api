@@ -30,13 +30,18 @@ services:
     environment:
       - FLASK_ENV=production
       - DATABASE_URL=postgresql://walletuser:walletpass@db:5432/walletwatcher
-      - RPC_URL=${RPC_URL}
+      - WEB3_PROVIDER_URI=${WEB3_PROVIDER_URI}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - ADMIN_SECRET=${ADMIN_SECRET:-your-admin-secret-here}
     ports:
       - "5000:5000"
     volumes:
-      - ./logs:/app/logs
-    command: gunicorn --bind 0.0.0.0:5000 --workers 2 api.app:app
+      - app_logs:/app/logs
+    # Single worker: the app starts an in-process APScheduler background job at
+    # boot (wallet monitoring). Multiple workers would each start their own
+    # scheduler, monitoring every wallet multiple times per cycle.
+    command: gunicorn --bind 0.0.0.0:5000 --workers 1 api.app:app
 
 volumes:
   postgres_data:
+  app_logs:
